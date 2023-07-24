@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Outlet, useParams } from "react-router-dom";
+import {
+  Link,
+  useMatch,
+  Outlet,
+  useParams,
+  PathPattern,
+} from "react-router-dom";
 
 type InfoData = {
   id: string;
@@ -47,6 +52,8 @@ export default function CoinDetail() {
   const { coinId } = useParams();
   const [info, setInfo] = useState<InfoData>();
   const [priceInfo, setPriceInfo] = useState<PriceData>();
+  const priceMatch = useMatch("/coin/:coinId/price");
+  const chartMatch = useMatch("/coin/:coinId/chart");
 
   useEffect(() => {
     (async () => {
@@ -95,11 +102,21 @@ export default function CoinDetail() {
               <span>{priceInfo?.max_supply}</span>
             </li>
           </ul>
-          <div className="flex justify-between text-center">
-            <Link to="chart" className="w-1/2">
+          <div className="flex justify-between text-center my-6 gap-2">
+            <Link
+              to="chart"
+              className={`flex-1 ${
+                chartMatch ? "bg-blue-300" : "bg-orange-200"
+              }`}
+            >
               chart
             </Link>
-            <Link to="price" className="w-1/2">
+            <Link
+              to="price"
+              className={`flex-1 ${
+                priceMatch ? "bg-blue-300" : "bg-orange-200"
+              }`}
+            >
               price
             </Link>
           </div>
