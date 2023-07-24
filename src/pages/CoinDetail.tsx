@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react";
-import {
-  Link,
-  useMatch,
-  Outlet,
-  useParams,
-  PathPattern,
-} from "react-router-dom";
+import { useQuery } from "react-query";
+import { Link, useMatch, Outlet, useParams } from "react-router-dom";
+import { fetchCoinInfo, fetchCoinTickers } from "../api";
 
 type InfoData = {
   id: string;
@@ -47,28 +43,44 @@ type PriceData = {
   last_updated: string;
 };
 
+type RouteParams = {
+  coinId: string;
+};
+
 export default function CoinDetail() {
-  const [loading, setLoading] = useState(true);
-  const { coinId } = useParams();
-  const [info, setInfo] = useState<InfoData>();
-  const [priceInfo, setPriceInfo] = useState<PriceData>();
+  const { coinId } = useParams<RouteParams>();
+  // const [loading, setLoading] = useState(true);
+  // const [info, setInfo] = useState<InfoData>();
+  // const [priceInfo, setPriceInfo] = useState<PriceData>();
   const priceMatch = useMatch("/coin/:coinId/price");
   const chartMatch = useMatch("/coin/:coinId/chart");
 
-  useEffect(() => {
-    (async () => {
-      const infoData = await (
-        await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
-      ).json();
-      const price = await (
-        await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
-      ).json();
-      setInfo(infoData);
-      setPriceInfo(price);
-      setLoading(false);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
+    ["info", coinId],
+    () => fetchCoinInfo(coinId)
+  );
+
+  const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
+    ["tickers", coinId],
+    () => fetchCoinTickers(coinId)
+  );
+
+  const loading = infoLoading && tickersLoading;
+
+  // useEffect(() => {
+  //   (async () => {
+  //     const infoData = await (
+  //       await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
+  //     ).json();
+  //     const price = await (
+  //       await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
+  //     ).json();
+  //     setInfo(infoData);
+  //     setPriceInfo(price);
+  //     setLoading(false);
+  //   })();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   return (
     <div className="p-6">
@@ -80,26 +92,26 @@ export default function CoinDetail() {
           <ul className="text-xl font-bold">
             <li className="py-4 border-b first:border-t">
               <span className="mr-2">Rank:</span>
-              <span>{info?.rank}</span>
+              <span>{infoData?.rank}</span>
             </li>
             <li className="py-4 border-b">
               <span className="mr-2">Symbol:</span>
-              <span>{info?.symbol}</span>
+              <span>{infoData?.symbol}</span>
             </li>
             <li className="py-4 border-b">
               <span className="mr-2">Open Source:</span>
-              <span>{info?.open_source ? "Yes" : "No"}</span>
+              <span>{infoData?.open_source ? "Yes" : "No"}</span>
             </li>
             <li className="py-4 border-b">
-              <span>{info?.description}</span>
+              <span>{infoData?.description}</span>
             </li>
             <li className="py-4 border-b">
               <span className="mr-2">Total Suply:</span>
-              <span>{priceInfo?.total_supply}</span>
+              <span>{tickersData?.total_supply}</span>
             </li>
             <li className="py-4 border-b">
               <span className="mr-2">Max Suply:</span>
-              <span>{priceInfo?.max_supply}</span>
+              <span>{tickersData?.max_supply}</span>
             </li>
           </ul>
           <div className="flex justify-between text-center my-6 gap-2">

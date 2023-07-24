@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
 import { Link } from "react-router-dom";
+import { fetchCoins } from "../api";
 
 type CoinData = {
   id: string;
@@ -8,17 +10,25 @@ type CoinData = {
 };
 
 export default function Coins() {
-  const [loading, setLoading] = useState(true);
-  const [conis, setCoins] = useState<CoinData[]>([]);
+  const queryFn = () => {
+    return fetch(`https://api.coinpaprika.com/v1/coins`).then((res) =>
+      res.json()
+    );
+  };
 
-  useEffect(() => {
-    (async () => {
-      const response = await fetch(`https://api.coinpaprika.com/v1/coins`);
-      const json = await response.json();
-      setCoins(json.slice(0, 300));
-      setLoading(false);
-    })();
-  }, []);
+  const { isLoading, data } = useQuery<CoinData[]>("allCoins", fetchCoins);
+
+  // const [isLoading, setLoading] = useState(true);
+  // const [data, setCoins] = useState<CoinData[]>([]);
+
+  // useEffect(() => {
+  //   (async () => {
+  //     const response = await fetch(`https://api.coinpaprika.com/v1/coins`);
+  //     const json = await response.json();
+  //     setCoins(json);
+  //     setLoading(false);
+  //   })();
+  // }, []);
 
   // https://api.coinpaprika.com/v1/coins
   return (
@@ -26,12 +36,12 @@ export default function Coins() {
       <div className="mb-6">
         <h1 className="bold text-5xl">Coin</h1>
       </div>
-      {loading ? (
+      {isLoading ? (
         <div className="loading">Loading...</div>
       ) : (
         <div className="container">
           <ul>
-            {conis.map((coin) => (
+            {data?.slice(0, 200).map((coin) => (
               <li
                 key={coin.id}
                 className="p-4 border-b first:border-t hover:bg-gray-50"
